@@ -5,18 +5,26 @@ import matplotlib.pyplot as plt
 
 set_1 = {i+1: chr(ord('a') + i) for i in range(26)}
 set_1[0] = ' '
-x, Fe = sf.read('/Users/rayanedakhlaoui/Desktop/frequence_perdue-main/sounds/mess_difficile.wav')
-y, Fe = sf.read('/Users/rayanedakhlaoui/Desktop/frequence_perdue-main/sounds/mess.wav')
-z,Fe = sf.read('/Users/rayanedakhlaoui/Desktop/frequence_perdue-main/sounds/mess_ssespace.wav')
-w, Fe = sf.read('/Users/rayanedakhlaoui/Desktop/frequence_perdue-main/sounds/symboleU2.wav')
+
+a, Fe = sf.read('../sounds/symboleA.wav')
+b, Fe = sf.read('../sounds/symboleA2.wav')
+c, Fe = sf.read('../sounds/symboleU.wav')
+d, Fe = sf.read('../sounds/symboleU2.wav')
+e, Fe = sf.read('../sounds/mess_ssespace.wav')
+f, Fe = sf.read('../sounds/mess.wav')
+g, Fe = sf.read('../sounds/mess_difficile.wav')
+
+Nfft = 72000
 
 
-def decode_padding(x,Fe):
+def decode_padding(x,Fe, hanning):
     seuil = 25
-    Nfft = 24000
-    x = x*np.hanning(len(x))
+    global Nfft
+    if hanning:
+        seuil = 22
+        x = x*np.hanning(len(x))
     u = np.fft.fft(x,Nfft)
-    show_TF(u)
+    #show_TF(u)
     index = np.argmax(abs(u[(501 * Nfft)//Fe :(527 * Nfft)//Fe])) + (501 * Nfft) // Fe
     frequence_estimee = round((index * Fe) / Nfft)
     if abs(u[index]) > seuil:
@@ -25,39 +33,26 @@ def decode_padding(x,Fe):
     
 
 def show_TF(u):
-    Nfft = 24000
-    locs = np.linspace(0,26,num=26*Nfft//Fe,endpoint=True)
-    plt.stem(locs, abs(u[(501* Nfft)//Fe:(527* Nfft)//Fe]))
-    plt.show()
-
-def show(x,Fe):
-    t = np.linspace(0, x.shape[0]/Fe, x.shape[0])
-    plt.plot(t, x, label="Signal échantillonné")
-    plt.grid()
-    plt.xlabel(r"$t$ (s)")
-    plt.ylabel(r"Amplitude")
-    plt.title(r"Signal sonore")
+    global Nfft
+    locs = np.linspace(1,27,num=26*Nfft//Fe,endpoint=True)
+    plt.plot(locs, abs(u[(501* Nfft)//Fe:(527* Nfft)//Fe]))
     plt.show()
 
 
-
-
-def decode_letter(x,Fe):
-    key = int(decode_padding(x,Fe) - 500)
-    print(key)
+def decode_letter(x,Fe, hanning = False):
+    key = int(decode_padding(x,Fe, hanning) - 500)
     keys = set_1.keys()
     if key not in keys:
-        print('space')
         return ' '
     else:
-        print(set_1[key]) 
         return set_1[key]
-
 
 
 def decode(x,Fe):
     set = []
     n = len(x)
+    if n == 2000:
+        return decode_letter(x,Fe,hanning = True)
     nb_car = int(n//2500)
     for k in range(nb_car):
         set.append(x[k*2500:k*2500+2000])
@@ -67,8 +62,11 @@ def decode(x,Fe):
         str = str + decode_letter(set[i],Fe)
     return str
 
-print(decode(x,Fe))
-print(decode(y,Fe))
-print(decode(z,Fe))
-print(decode_letter(w,Fe))
-# filter(x,Fe)
+
+print(decode(a,Fe))
+print(decode(b,Fe))
+print(decode(c,Fe))
+print(decode(d,Fe))
+print(decode(e,Fe))
+print(decode(f,Fe))
+print(decode(g,Fe))
